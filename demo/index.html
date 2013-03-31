@@ -6,5 +6,51 @@
     <script type="text/javascript" src="//raw.github.com/karolyi/ui-selectableScroll/master/selectableScroll.js"></script>
     <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1/themes/ui-lightness/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="//raw.github.com/karolyi/ui-selectableScroll/master/jquery-ui-ext.css">
+    <style type="text/css">
+    .selectable-scrollable {
+      border: 1px dashed black;
+      overflow: auto;
+      height: 200px;
+      width: 400px;
+      padding: 0;
+    }
+    .selectable-scrollable li {
+      width: 500px;
+      height: 30px;
+      border: 1px dotted black;
+      list-style-type: none;
+      margin: 5px;
+    }
+    </style>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('.selectable-scrollable').selectableScroll({
+          filter: 'li'
+        });
+      });
+    </script>
   </head>
+  <body>
+    <ul class="selectable-scrollable">
+      <li>Selectable 1</li>
+      <li>Selectable 2</li>
+      <li>Selectable 3</li>
+      <li>Selectable 4</li>
+      <li>Selectable 5</li>
+      <li>Selectable 6</li>
+      <li>Selectable 7</li>
+      <li>Selectable 8</li>
+      <li>Selectable 9</li>
+      <li>Selectable 10</li>
+      <li>Selectable 11</li>
+      <li>Selectable 12</li>
+      <li>Selectable 13</li>
+      <li>Selectable 14</li>
+      <li>Selectable 15</li>
+      <li>Selectable 16</li>
+      <li>Selectable 17</li>
+      <li>Selectable 18</li>
+      <li>Selectable 19</li>
+    </ul>
+  </body>
 </html>
