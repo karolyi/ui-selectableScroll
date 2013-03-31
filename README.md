@@ -1,4 +1,4 @@
 selectableScroll
 ================
 
-jquery-ui selectable extended with scroll capabilities
+An extended jQuery-ui selectable with scroll capabilities
