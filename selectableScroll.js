@@ -376,7 +376,6 @@
      */
     _clearIntervals: function () {
       // Stop scrolling
-      this.lastDragEvent = null;
       if (this.scrollIntervalId)
         clearInterval(this.scrollIntervalId);
       this.scrollIntervalId = null;
