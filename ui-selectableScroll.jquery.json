@@ -1,6 +1,6 @@
 {
   "name": "ui-selectableScroll",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "An extended jQuery-ui selectable with scroll capabilities",
   "licenses": [
     {
@@ -20,7 +20,7 @@
     "scroll",
     "plugin"
   ],
-  "homepage": "https://github.com/karolyi/ui-selectableScroll",
+  "homepage": "http://karolyi.github.com/ui-selectableScroll/",
   "docs": "https://github.com/karolyi/ui-selectableScroll/wiki/How-does-it-work",
   "download": "https://github.com/karolyi/ui-selectableScroll",
   "author": {
