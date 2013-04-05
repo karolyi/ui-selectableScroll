@@ -36,6 +36,7 @@
         that = this;
       this.element.addClass("ui-selectable");
       this.dragged = false;
+      this.helperClasses = ['no-top', 'no-right', 'no-bottom', 'no-left'];
       // cache selectee children based on filter
       this.refresh = function() {
         var elementOffset = this.element.offset();
@@ -126,14 +127,14 @@
       } else {
         y2 = this.scrollInfo.elementOffset.top + options.y2 - options.scrollTop;
       }
-      var modifyHelperClass = function (className) {
+      for (var counter = 0; counter < this.helperClasses.length; counter++) {
+        var className = this.helperClasses[counter];
         if (lassoClassesArray.indexOf(className) !== -1) {
-          that.helper.addClass(className);
+          this.helper.addClass(className);
         } else {
-          that.helper.removeClass(className);
+          this.helper.removeClass(className);
         }
-      };
-      ['no-top', 'no-bottom', 'no-left', 'no-right'].forEach(modifyHelperClass);
+      }
       this.helper.css({
         left: x1,
         top: y1,
