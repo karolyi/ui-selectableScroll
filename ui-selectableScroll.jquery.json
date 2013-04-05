@@ -1,6 +1,6 @@
 {
   "name": "ui-selectableScroll",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "title": "An extended jQuery-ui selectable with scroll capabilities",
   "licenses": [
     {
