@@ -129,7 +129,7 @@
       }
       for (var counter = 0; counter < this.helperClasses.length; counter++) {
         var className = this.helperClasses[counter];
-        if (lassoClassesArray.indexOf(className) !== -1) {
+        if ($.inArray(className, lassoClassesArray) !== -1) {
           this.helper.addClass(className);
         } else {
           this.helper.removeClass(className);
