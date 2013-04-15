@@ -79,6 +79,17 @@
      * @return {boolean}       The parent's _mouseStart return value
      */
     _mouseStart: function (event) {
+      
+      //-- start contribution by Aaron Waldon (@aaronwaldon on Github)
+      //prevent drag if a scroll bar
+  		if ( event.pageX - this.element.offset().left + this.element.prop('scrollLeft') > this.element.prop('scrollWidth') ) { //horizontal scroll
+				return false;
+			}
+			if ( event.pageY - this.element.offset().top + this.element.prop('scrollTop') > this.element.prop('scrollHeight') ) { //vertical scroll
+				return false;
+			}
+      //-- end contribution by Aaron Waldon
+      
       var retValue = this._super(event);
       this.lastDragEvent = null;
       this.scrollInfo = {
