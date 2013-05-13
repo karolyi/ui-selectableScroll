@@ -79,7 +79,7 @@
      * @return {boolean}       The parent's _mouseStart return value
      */
     _mouseStart: function (event) {
-      var retValue = this._super(event);
+      var retValue = $.ui.selectable.prototype._mouseStart.call(this, event);
       this.lastDragEvent = null;
       this.scrollInfo = {
         elementOffset: this.element.offset(), // The element's 0.0 offset related to the document element
@@ -389,7 +389,7 @@
      */
     _mouseStop: function (event) {
       this._clearIntervals();
-      var retValue = this._super(event);
+      var retValue = $.ui.selectable.prototype._mouseStop.call(this, event);
       return retValue;
     }
   });
