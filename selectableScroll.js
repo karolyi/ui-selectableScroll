@@ -39,41 +39,41 @@
       this.dragged = false;
       this.helperClasses = ['no-top', 'no-right', 'no-bottom', 'no-left'];
       this.scrollElement = this.options.scrollElement || this.element;
-
-      // cache selectee children based on filter
-      this.refresh = function() {
-        var elementOffset = this.scrollElement.offset();
-        var scrollLeft = this.scrollElement.prop('scrollLeft');
-        var scrollTop = this.scrollElement.prop('scrollTop');
-        selectees = $(that.options.filter, that.scrollElement[0]);
-        selectees.addClass("ui-selectee");
-        selectees.each(function() {
-          var $this = $(this),
-            pos = $this.offset();
-          $.data(this, "selectable-item", {
-            element: this,
-            $element: $this,
-            left: pos.left,
-            top: pos.top,
-            right: pos.left + $this.outerWidth(),
-            bottom: pos.top + $this.outerHeight(),
-            relative: { // Relative positions according to the element's 0.0
-              left: pos.left - elementOffset.left + scrollLeft,
-              top: pos.top - elementOffset.top + scrollTop,
-              right: pos.left - elementOffset.left + scrollLeft + $this.outerWidth(),
-              bottom: pos.top - elementOffset.top + scrollTop + $this.outerHeight()
-            },
-            startselected: false,
-            selected: $this.hasClass("ui-selected"),
-            selecting: $this.hasClass("ui-selecting"),
-            unselecting: $this.hasClass("ui-unselecting")
-          });
-        });
-      };
       this.refresh();
       this.selectees = selectees.addClass("ui-selectee");
       this._mouseInit();
       this.helper = $("<div class='ui-selectable-helper'></div>");
+    },
+
+    // Cache selectee children based on filter
+    refresh: function() {
+      var elementOffset = this.scrollElement.offset();
+      var scrollLeft = this.scrollElement.prop('scrollLeft');
+      var scrollTop = this.scrollElement.prop('scrollTop');
+      selectees = $(that.options.filter, that.scrollElement[0]);
+      selectees.addClass('ui-selectee');
+      selectees.each(function() {
+        var jqElement = $(this),
+          pos = jqElement.offset();
+        $.data(this, 'selectable-item', {
+          element: this,
+          jqElement: jqElement,
+          left: pos.left,
+          top: pos.top,
+          right: pos.left + jqElement.outerWidth(),
+          bottom: pos.top + jqElement.outerHeight(),
+          relative: { // Relative positions according to the element's 0.0
+            left: pos.left - elementOffset.left + scrollLeft,
+            top: pos.top - elementOffset.top + scrollTop,
+            right: pos.left - elementOffset.left + scrollLeft + jqElement.outerWidth(),
+            bottom: pos.top - elementOffset.top + scrollTop + jqElement.outerHeight()
+          },
+          startselected: false,
+          selected: jqElement.hasClass("ui-selected"),
+          selecting: jqElement.hasClass("ui-selecting"),
+          unselecting: jqElement.hasClass("ui-unselecting")
+        });
+      });
     },
 
     /**
@@ -238,15 +238,15 @@
         if (hit) {
           // SELECT
           if (selectee.selected) {
-            selectee.$element.removeClass("ui-selected");
+            selectee.jqElement.removeClass("ui-selected");
             selectee.selected = false;
           }
           if (selectee.unselecting) {
-            selectee.$element.removeClass("ui-unselecting");
+            selectee.jqElement.removeClass("ui-unselecting");
             selectee.unselecting = false;
           }
           if (!selectee.selecting) {
-            selectee.$element.addClass("ui-selecting");
+            selectee.jqElement.addClass("ui-selecting");
             selectee.selecting = true;
             // selectable SELECTING callback
             that._trigger("selecting", that.lastDragEvent, {
@@ -257,15 +257,15 @@
           // UNSELECT
           if (selectee.selecting) {
             if ((that.lastDragEvent.metaKey || that.lastDragEvent.ctrlKey) && selectee.startselected) {
-              selectee.$element.removeClass("ui-selecting");
+              selectee.jqElement.removeClass("ui-selecting");
               selectee.selecting = false;
-              selectee.$element.addClass("ui-selected");
+              selectee.jqElement.addClass("ui-selected");
               selectee.selected = true;
             } else {
-              selectee.$element.removeClass("ui-selecting");
+              selectee.jqElement.removeClass("ui-selecting");
               selectee.selecting = false;
               if (selectee.startselected) {
-                selectee.$element.addClass("ui-unselecting");
+                selectee.jqElement.addClass("ui-unselecting");
                 selectee.unselecting = true;
               }
               // selectable UNSELECTING callback
@@ -276,10 +276,10 @@
           }
           if (selectee.selected) {
             if (!that.lastDragEvent.metaKey && !that.lastDragEvent.ctrlKey && !selectee.startselected) {
-              selectee.$element.removeClass("ui-selected");
+              selectee.jqElement.removeClass("ui-selected");
               selectee.selected = false;
 
-              selectee.$element.addClass("ui-unselecting");
+              selectee.jqElement.addClass("ui-unselecting");
               selectee.unselecting = true;
               // selectable UNSELECTING callback
               that._trigger("unselecting", that.lastDragEvent, {
