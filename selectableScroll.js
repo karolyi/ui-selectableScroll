@@ -21,7 +21,7 @@
 (function ($) {
   $.widget('ui.selectableScroll', $.ui.selectable, {
     options: {
-      useParentForScrolling: false, // If true, targets the parent element for scrolling
+      scrollElement: null, // If an element is passed in here, use it for scrolling instead of widget's element
       scrollSnapX: 5, // When the selection is that pixels near to the top/bottom edges, start to scroll
       scrollSnapY: 5, // When the selection is that pixels near to the side edges, start to scroll
       scrollAmount: 25, // In pixels
@@ -38,7 +38,7 @@
       this.element.addClass("ui-selectable");
       this.dragged = false;
       this.helperClasses = ['no-top', 'no-right', 'no-bottom', 'no-left'];
-      this.scrollElement = this._getScrollElement();
+      this.scrollElement = this.options.scrollElement || this.element;
 
       // cache selectee children based on filter
       this.refresh = function() {
@@ -211,17 +211,6 @@
         x2: relX2,
         y2: relY2
       };
-    },
-
-    /**
-     * Returns the element to apply scrolling to. (Sometimes we'll want to use the parent element of the selectable.)
-     */
-    _getScrollElement: function () {
-      if (this.options.useParentForScrolling) {
-        return this.element.parent();
-      }
-
-      return this.element;
     },
 
     /**
