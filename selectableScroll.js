@@ -21,6 +21,7 @@
 (function ($) {
   $.widget('ui.selectableScroll', $.ui.selectable, {
     options: {
+      useParentForScrolling: false, // If true, targets the parent element for scrolling
       scrollSnapX: 5, // When the selection is that pixels near to the top/bottom edges, start to scroll
       scrollSnapY: 5, // When the selection is that pixels near to the side edges, start to scroll
       scrollAmount: 25, // In pixels
@@ -37,12 +38,14 @@
       this.element.addClass("ui-selectable");
       this.dragged = false;
       this.helperClasses = ['no-top', 'no-right', 'no-bottom', 'no-left'];
+      this.scrollElement = this._getScrollElement();
+
       // cache selectee children based on filter
       this.refresh = function() {
-        var elementOffset = this.element.offset();
-        var scrollLeft = this.element.prop('scrollLeft');
-        var scrollTop = this.element.prop('scrollTop');
-        selectees = $(that.options.filter, that.element[0]);
+        var elementOffset = this.scrollElement.offset();
+        var scrollLeft = this.scrollElement.prop('scrollLeft');
+        var scrollTop = this.scrollElement.prop('scrollTop');
+        selectees = $(that.options.filter, that.scrollElement[0]);
         selectees.addClass("ui-selectee");
         selectees.each(function() {
           var $this = $(this),
@@ -82,14 +85,14 @@
       var retValue = $.ui.selectable.prototype._mouseStart.call(this, event);
       this.lastDragEvent = null;
       this.scrollInfo = {
-        elementOffset: this.element.offset(), // The element's 0.0 offset related to the document element
-        scrollHeight: this.element.prop('scrollHeight'), // The maximum scrollable height (visible height + scrollTop)
-        scrollWidth: this.element.prop('scrollWidth'), // The maximum scrollable height (visible width + scrollLeft)
-        elementHeight: this.element.height(), // The visible height
-        elementWidth: this.element.width() // The visible width
+        elementOffset: this.scrollElement.offset(), // The element's 0.0 offset related to the document element
+        scrollHeight: this.scrollElement.prop('scrollHeight'), // The maximum scrollable height (visible height + scrollTop)
+        scrollWidth: this.scrollElement.prop('scrollWidth'), // The maximum scrollable height (visible width + scrollLeft)
+        elementHeight: this.scrollElement.height(), // The visible height
+        elementWidth: this.scrollElement.width() // The visible width
       };
-      this.scrollInfo.dragStartXPos = event.pageX - this.scrollInfo.elementOffset.left + this.element.prop('scrollLeft'); // Relative to element's 0
-      this.scrollInfo.dragStartYPos = event.pageY - this.scrollInfo.elementOffset.top + this.element.prop('scrollTop'); // Relative to element's 0
+      this.scrollInfo.dragStartXPos = event.pageX - this.scrollInfo.elementOffset.left + this.scrollElement.prop('scrollLeft'); // Relative to element's 0
+      this.scrollInfo.dragStartYPos = event.pageY - this.scrollInfo.elementOffset.top + this.scrollElement.prop('scrollTop'); // Relative to element's 0
       this.scrollIntervalId = null;
       return retValue;
     },
@@ -100,7 +103,6 @@
      * @return {null}         no return value
      */
     _updateHelper: function (options) {
-      var that = this;
       var x1, y1, x2, y2; // Absolute positions for the lasso helper
       var lassoClassesArray = [];
       if (options.x1 - options.scrollLeft < 0) {
@@ -148,28 +150,28 @@
      * @return {object}         The new scrollLeft and scrollTop values, and a boolean if the element should keep scrolling
      */
     _scrollIfNeeded: function (options) {
-      var scrollLeft = this.element.prop('scrollLeft');
-      var scrollTop = this.element.prop('scrollTop');
+      var scrollLeft = this.scrollElement.prop('scrollLeft');
+      var scrollTop = this.scrollElement.prop('scrollTop');
       var keepScrolling = false;
       // Scroll if close to edges or over them
       if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left < this.options.scrollSnapX && scrollLeft > 0) {
         scrollLeft = scrollLeft < this.options.scrollAmount ? 0 : scrollLeft - this.options.scrollAmount;
-        this.element.prop('scrollLeft', scrollLeft);
+        this.scrollElement.prop('scrollLeft', scrollLeft);
         keepScrolling = true;
       }
       if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top < this.options.scrollSnapY && scrollTop > 0) {
         scrollTop = scrollTop < this.options.scrollAmount ? 0 : scrollTop - this.options.scrollAmount;
-        this.element.prop('scrollTop', scrollTop);
+        this.scrollElement.prop('scrollTop', scrollTop);
         keepScrolling = true;
       }
       if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left > this.scrollInfo.elementWidth - this.options.scrollSnapX && this.scrollInfo.scrollWidth > scrollLeft + this.scrollInfo.elementWidth) {
         scrollLeft = scrollLeft + this.options.scrollAmount > this.scrollInfo.scrollWidth - this.scrollInfo.elementWidth ? this.scrollInfo.scrollWidth - this.scrollInfo.elementWidth : scrollLeft + this.options.scrollAmount;
-        this.element.prop('scrollLeft', scrollLeft);
+        this.scrollElement.prop('scrollLeft', scrollLeft);
         keepScrolling = true;
       }
       if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top > this.scrollInfo.elementHeight - this.options.scrollSnapY && this.scrollInfo.scrollHeight > scrollLeft + this.scrollInfo.elementHeight) {
         scrollTop = scrollTop + this.options.scrollAmount > this.scrollInfo.scrollHeight - this.scrollInfo.elementHeight ? this.scrollInfo.scrollHeight - this.scrollInfo.elementHeight : scrollTop + this.options.scrollAmount;
-        this.element.prop('scrollTop', scrollTop);
+        this.scrollElement.prop('scrollTop', scrollTop);
         keepScrolling = true;
       }
       return {
@@ -212,13 +214,24 @@
     },
 
     /**
+     * Returns the element to apply scrolling to. (Sometimes we'll want to use the parent element of the selectable.)
+     */
+    _getScrollElement: function () {
+      if (this.options.useParentForScrolling) {
+        return this.element.parent();
+      }
+
+      return this.element;
+    },
+
+    /**
      * Update the selected elements
      * @param  {object} options The return value of _calcRelativeArea()
      * @return {null}         No return value
      */
     _updateSelectees: function (options) {
       var that = this;
-      this.selectees.each(function() {
+      this.selectees.each(function () {
         var selectee = $.data(this, "selectable-item"),
         hit = false;
 
@@ -228,7 +241,7 @@
         }
 
         if (that.options.tolerance === "touch") {
-          hit = ( !(selectee.relative.left > options.x2 || selectee.relative.right < options.x1 || selectee.relative.top > options.y2 || selectee.relative.bottom < options.y1) );
+          hit = (!(selectee.relative.left > options.x2 || selectee.relative.right < options.x1 || selectee.relative.top > options.y2 || selectee.relative.bottom < options.y1));
         } else if (that.options.tolerance === "fit") {
           hit = (selectee.relative.left > options.x1 && selectee.relative.right < options.x2 && selectee.relative.top > options.y1 && selectee.relative.bottom < options.y2);
         }
@@ -302,8 +315,6 @@
       this.lastDragEvent = event;
 
       var scrollObj = this._scrollIfNeeded();
-
-      var that = this;
 
       this._updateIntervals({
         keepScrolling: scrollObj.keepScrolling
