@@ -18,38 +18,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+/*global jQuery*/
 (function ($) {
+  'use strict';
   $.widget('ui.selectableScroll', $.ui.selectable, {
     options: {
-      scrollElement: null, // If an element is passed in here, use it for scrolling instead of widget's element
-      scrollSnapX: 5, // When the selection is that pixels near to the top/bottom edges, start to scroll
-      scrollSnapY: 5, // When the selection is that pixels near to the side edges, start to scroll
+      // If an element is passed in here, use it for scrolling instead of widget's element
+      scrollElement: null,
+      // When the selection is that pixels near to the top/bottom edges, start to scroll
+      scrollSnapX: 5,
+      // When the selection is that pixels near to the side edges, start to scroll
+      scrollSnapY: 5,
       scrollAmount: 25, // In pixels
       scrollIntervalTime: 100 // In milliseconds
     },
 
     /**
-     * This is a slightly modified version of the original _create function, we just add the element's relative positions too
-     * @return {null} no return value
+     * This is a slightly modified version of the original _create function,
+     * we just add the element's relative positions too
+     *
+     * @return null
      */
     _create: function () {
-      this.element.addClass("ui-selectable");
+      this.element.addClass('ui-selectable');
       this.dragged = false;
       this.helperClasses = ['no-top', 'no-right', 'no-bottom', 'no-left'];
       this.scrollElement = this.options.scrollElement || this.element;
       this.refresh();
       this._mouseInit();
-      this.helper = $("<div class='ui-selectable-helper'></div>");
+      this.helper = $('<div class="ui-selectable-helper"></div>');
     },
 
-    // Cache selectee children based on filter
-    refresh: function() {
+    /**
+     * Cache selectee children based on filter
+     * @return null
+     */
+    refresh: function () {
       var elementOffset = this.scrollElement.offset();
       var scrollLeft = this.scrollElement.prop('scrollLeft');
       var scrollTop = this.scrollElement.prop('scrollTop');
       this.selectees = $(this.options.filter, this.scrollElement[0]);
       this.selectees.addClass('ui-selectee');
-      this.selectees.each(function() {
+      this.selectees.each(function () {
         var $element = $(this),
           pos = $element.offset();
         $.data(this, 'selectable-item', {
@@ -59,11 +69,14 @@
           top: pos.top,
           right: pos.left + $element.outerWidth(),
           bottom: pos.top + $element.outerHeight(),
-          relative: { // Relative positions according to the element's 0.0
+          // Relative positions according to the element's 0.0
+          relative: {
             left: pos.left - elementOffset.left + scrollLeft,
             top: pos.top - elementOffset.top + scrollTop,
-            right: pos.left - elementOffset.left + scrollLeft + $element.outerWidth(),
-            bottom: pos.top - elementOffset.top + scrollTop + $element.outerHeight()
+            right: pos.left - elementOffset.left + scrollLeft +
+              $element.outerWidth(),
+            bottom: pos.top - elementOffset.top + scrollTop +
+              $element.outerHeight()
           },
           startselected: false,
           selected: $element.hasClass('ui-selected'),
@@ -74,30 +87,51 @@
     },
 
     /**
-     * By starting dragging, calculate the element's current scroll states, relative to the elements 0.0 offset
-     * @param  {object} event the mousedown event
-     * @return {boolean}       The parent's _mouseStart return value
+     * By starting dragging, calculate the element's current scroll states,
+     * relative to the elements 0.0 offset
+     *
+     * @param  object  The mousedown event
+     * @return boolean The parent's _mouseStart return value
      */
     _mouseStart: function (event) {
-      var retValue = $.ui.selectable.prototype._mouseStart.call(this, event);
+      if (
+        (event.pageX > this.scrollElement.prop('clientWidth') +
+          this.scrollElement.prop('offsetLeft')) ||
+        (event.pageY > this.scrollElement.prop('clientHeight') +
+          this.scrollElement.prop('offsetTop'))) {
+        return false;
+      }
+      var retValue = $.ui.selectable.prototype._mouseStart.call(this,
+        event);
       this.lastDragEvent = null;
       this.scrollInfo = {
-        elementOffset: this.scrollElement.offset(), // The element's 0.0 offset related to the document element
-        scrollHeight: this.scrollElement.prop('scrollHeight'), // The maximum scrollable height (visible height + scrollTop)
-        scrollWidth: this.scrollElement.prop('scrollWidth'), // The maximum scrollable height (visible width + scrollLeft)
-        elementHeight: this.scrollElement.height(), // The visible height
-        elementWidth: this.scrollElement.width() // The visible width
+        // The element's 0.0 offset related to the document element
+        elementOffset: this.scrollElement.offset(),
+        // The maximum scrollable width (visible width + scrollLeft)
+        scrollWidth: this.scrollElement.prop('scrollWidth'),
+        // The maximum scrollable height (visible height + scrollTop)
+        scrollHeight: this.scrollElement.prop('scrollHeight'),
+        // The visible width (minus scrollbars)
+        elementWidth: this.scrollElement.prop('clientWidth'),
+        // The visible height (minus scrollbars)
+        elementHeight: this.scrollElement.prop('clientHeight')
       };
-      this.scrollInfo.dragStartXPos = event.pageX - this.scrollInfo.elementOffset.left + this.scrollElement.prop('scrollLeft'); // Relative to element's 0
-      this.scrollInfo.dragStartYPos = event.pageY - this.scrollInfo.elementOffset.top + this.scrollElement.prop('scrollTop'); // Relative to element's 0
+      // Relative to element's 0
+      this.scrollInfo.dragStartXPos = event.pageX - this.scrollInfo.elementOffset
+        .left + this.scrollElement.prop('scrollLeft');
+      // Relative to element's 0
+      this.scrollInfo.dragStartYPos = event.pageY - this.scrollInfo.elementOffset
+        .top + this.scrollElement.prop('scrollTop');
       this.scrollIntervalId = null;
       return retValue;
     },
 
     /**
-     * Calculate/redraw the helper lasso, keep the helper within the scrolled element
-     * @param  {object} options The object containing the relative positions of the selected rectangle
-     * @return {null}         no return value
+     * Calculate/redraw the helper lasso, keep the helper within
+     * the scrolled element
+     *
+     * @param  object The options object containing the relative positions of the selected rectangle
+     * @return null
      */
     _updateHelper: function (options) {
       var x1, y1, x2, y2; // Absolute positions for the lasso helper
@@ -143,31 +177,47 @@
     },
 
     /**
-     * If the mouse is near to the edges of the element's area, scroll
-     * @return {object}         The new scrollLeft and scrollTop values, and a boolean if the element should keep scrolling
+     * If the mouse is near to the edges of the elements area, scroll
+     *
+     * @return object The new scrollLeft and scrollTop values, and a
+     * boolean if the element should keep scrolling
      */
     _scrollIfNeeded: function (options) {
       var scrollLeft = this.scrollElement.prop('scrollLeft');
       var scrollTop = this.scrollElement.prop('scrollTop');
+
       var keepScrolling = false;
       // Scroll if close to edges or over them
-      if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left < this.options.scrollSnapX && scrollLeft > 0) {
-        scrollLeft = scrollLeft < this.options.scrollAmount ? 0 : scrollLeft - this.options.scrollAmount;
+      if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left <
+        this.options.scrollSnapX && scrollLeft > 0) {
+        scrollLeft = scrollLeft < this.options.scrollAmount ? 0 :
+          scrollLeft - this.options.scrollAmount;
         this.scrollElement.prop('scrollLeft', scrollLeft);
         keepScrolling = true;
       }
-      if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top < this.options.scrollSnapY && scrollTop > 0) {
-        scrollTop = scrollTop < this.options.scrollAmount ? 0 : scrollTop - this.options.scrollAmount;
+      if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top <
+        this.options.scrollSnapY && scrollTop > 0) {
+        scrollTop = scrollTop < this.options.scrollAmount ? 0 : scrollTop -
+          this.options.scrollAmount;
         this.scrollElement.prop('scrollTop', scrollTop);
         keepScrolling = true;
       }
-      if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left > this.scrollInfo.elementWidth - this.options.scrollSnapX && this.scrollInfo.scrollWidth > scrollLeft + this.scrollInfo.elementWidth) {
-        scrollLeft = scrollLeft + this.options.scrollAmount > this.scrollInfo.scrollWidth - this.scrollInfo.elementWidth ? this.scrollInfo.scrollWidth - this.scrollInfo.elementWidth : scrollLeft + this.options.scrollAmount;
+      if (this.lastDragEvent.pageX - this.scrollInfo.elementOffset.left >
+        this.scrollInfo.elementWidth - this.options.scrollSnapX && this.scrollInfo
+        .scrollWidth > scrollLeft + this.scrollInfo.elementWidth) {
+        scrollLeft = scrollLeft + this.options.scrollAmount > this.scrollInfo
+          .scrollWidth - this.scrollInfo.elementWidth ? this.scrollInfo.scrollWidth -
+          this.scrollInfo.elementWidth : scrollLeft + this.options.scrollAmount;
         this.scrollElement.prop('scrollLeft', scrollLeft);
         keepScrolling = true;
       }
-      if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top > this.scrollInfo.elementHeight - this.options.scrollSnapY && this.scrollInfo.scrollHeight > scrollLeft + this.scrollInfo.elementHeight) {
-        scrollTop = scrollTop + this.options.scrollAmount > this.scrollInfo.scrollHeight - this.scrollInfo.elementHeight ? this.scrollInfo.scrollHeight - this.scrollInfo.elementHeight : scrollTop + this.options.scrollAmount;
+      if (this.lastDragEvent.pageY - this.scrollInfo.elementOffset.top >
+        this.scrollInfo.elementHeight - this.options.scrollSnapY && this.scrollInfo
+        .scrollHeight > scrollLeft + this.scrollInfo.elementHeight) {
+        scrollTop = scrollTop + this.options.scrollAmount > this.scrollInfo
+          .scrollHeight - this.scrollInfo.elementHeight ? this.scrollInfo
+          .scrollHeight - this.scrollInfo.elementHeight : scrollTop +
+          this.options.scrollAmount;
         this.scrollElement.prop('scrollTop', scrollTop);
         keepScrolling = true;
       }
@@ -179,13 +229,17 @@
     },
 
     /**
-     * Calculate a relative position to the element's 0.0 offset, from the original drag event's coordinates
-     * @param  {object} options The absolute X and Y positions
-     * @return {object}         The relative X and Y positions
+     * Calculate a relative position to the element's 0.0 offset,
+     * from the original drag event's coordinates
+     *
+     * @param  object The absolute X and Y positions
+     * @return object The relative X and Y positions
      */
     _calcRelativePosition: function (options) {
-      var relXPos = options.x - this.scrollInfo.elementOffset.left + options.scrollLeft;
-      var relYPos = options.y - this.scrollInfo.elementOffset.top + options.scrollTop;
+      var relXPos = options.x - this.scrollInfo.elementOffset.left +
+        options.scrollLeft;
+      var relYPos = options.y - this.scrollInfo.elementOffset.top +
+        options.scrollTop;
       return {
         x: relXPos,
         y: relYPos
@@ -194,14 +248,19 @@
 
     /**
      * Calculate relative area positions to offset element
-     * @param  {object} options The relative X and Y positions to the 0.0 of the element
-     * @return {object}         An object containing the relative area coordinates
+     *
+     * @param  object The relative X and Y positions to the 0.0 of the element
+     * @return object An object containing the relative area coordinates
      */
     _calcRelativeArea: function (options) {
-      var relX1 = options.xPos < this.scrollInfo.dragStartXPos ? options.xPos : this.scrollInfo.dragStartXPos;
-      var relY1 = options.yPos < this.scrollInfo.dragStartYPos ? options.yPos : this.scrollInfo.dragStartYPos;
-      var relX2 = options.xPos > this.scrollInfo.dragStartXPos ? options.xPos : this.scrollInfo.dragStartXPos;
-      var relY2 = options.yPos > this.scrollInfo.dragStartYPos ? options.yPos : this.scrollInfo.dragStartYPos;
+      var relX1 = options.xPos < this.scrollInfo.dragStartXPos ? options.xPos :
+        this.scrollInfo.dragStartXPos;
+      var relY1 = options.yPos < this.scrollInfo.dragStartYPos ? options.yPos :
+        this.scrollInfo.dragStartYPos;
+      var relX2 = options.xPos > this.scrollInfo.dragStartXPos ? options.xPos :
+        this.scrollInfo.dragStartXPos;
+      var relY2 = options.yPos > this.scrollInfo.dragStartYPos ? options.yPos :
+        this.scrollInfo.dragStartYPos;
       return {
         x1: relX1,
         y1: relY1,
@@ -212,74 +271,81 @@
 
     /**
      * Update the selected elements
-     * @param  {object} options The return value of _calcRelativeArea()
-     * @return {null}         No return value
+     *
+     * @param  object The return value of _calcRelativeArea()
+     * @return null
      */
     _updateSelectees: function (options) {
       var that = this;
       this.selectees.each(function () {
-        var selectee = $.data(this, "selectable-item"),
-        hit = false;
+        var selectee = $.data(this, 'selectable-item'),
+          hit = false;
 
-        //prevent helper from being selected if appendTo: selectable
+        // Prevent helper from being selected if appendTo: selectable
         if (!selectee || selectee.element === that.element[0]) {
           return;
         }
 
-        if (that.options.tolerance === "touch") {
-          hit = (!(selectee.relative.left > options.x2 || selectee.relative.right < options.x1 || selectee.relative.top > options.y2 || selectee.relative.bottom < options.y1));
-        } else if (that.options.tolerance === "fit") {
-          hit = (selectee.relative.left > options.x1 && selectee.relative.right < options.x2 && selectee.relative.top > options.y1 && selectee.relative.bottom < options.y2);
+        if (that.options.tolerance === 'touch') {
+          hit = (!(selectee.relative.left > options.x2 || selectee.relative
+            .right < options.x1 || selectee.relative.top > options.y2 ||
+            selectee.relative.bottom < options.y1));
+        } else if (that.options.tolerance === 'fit') {
+          hit = (selectee.relative.left > options.x1 && selectee.relative
+            .right < options.x2 && selectee.relative.top > options.y1 &&
+            selectee.relative.bottom < options.y2);
         }
 
         if (hit) {
           // SELECT
           if (selectee.selected) {
-            selectee.$element.removeClass("ui-selected");
+            selectee.$element.removeClass('ui-selected');
             selectee.selected = false;
           }
           if (selectee.unselecting) {
-            selectee.$element.removeClass("ui-unselecting");
+            selectee.$element.removeClass('ui-unselecting');
             selectee.unselecting = false;
           }
           if (!selectee.selecting) {
-            selectee.$element.addClass("ui-selecting");
+            selectee.$element.addClass('ui-selecting');
             selectee.selecting = true;
             // selectable SELECTING callback
-            that._trigger("selecting", that.lastDragEvent, {
+            that._trigger('selecting', that.lastDragEvent, {
               selecting: selectee.element
             });
           }
         } else {
           // UNSELECT
           if (selectee.selecting) {
-            if ((that.lastDragEvent.metaKey || that.lastDragEvent.ctrlKey) && selectee.startselected) {
-              selectee.$element.removeClass("ui-selecting");
+            if ((that.lastDragEvent.metaKey || that.lastDragEvent.ctrlKey) &&
+              selectee.startselected) {
+              selectee.$element.removeClass('ui-selecting');
               selectee.selecting = false;
-              selectee.$element.addClass("ui-selected");
+              selectee.$element.addClass('ui-selected');
               selectee.selected = true;
             } else {
-              selectee.$element.removeClass("ui-selecting");
+              selectee.$element.removeClass('ui-selecting');
               selectee.selecting = false;
               if (selectee.startselected) {
-                selectee.$element.addClass("ui-unselecting");
+                selectee.$element.addClass('ui-unselecting');
                 selectee.unselecting = true;
               }
-              // selectable UNSELECTING callback
-              that._trigger("unselecting", that.lastDragEvent, {
+              // Selectable UNSELECTING callback
+              that._trigger('unselecting', that.lastDragEvent, {
                 unselecting: selectee.element
               });
             }
           }
           if (selectee.selected) {
-            if (!that.lastDragEvent.metaKey && !that.lastDragEvent.ctrlKey && !selectee.startselected) {
-              selectee.$element.removeClass("ui-selected");
+            if (!that.lastDragEvent.metaKey && !that.lastDragEvent.ctrlKey && !
+              selectee.startselected) {
+              selectee.$element.removeClass('ui-selected');
               selectee.selected = false;
 
-              selectee.$element.addClass("ui-unselecting");
+              selectee.$element.addClass('ui-unselecting');
               selectee.unselecting = true;
-              // selectable UNSELECTING callback
-              that._trigger("unselecting", that.lastDragEvent, {
+              // Selectable UNSELECTING callback
+              that._trigger('unselecting', that.lastDragEvent, {
                 unselecting: selectee.element
               });
             }
@@ -290,8 +356,9 @@
 
     /**
      * The original _mouseDrag function overvritten by our one
-     * @param  {object} event The original mousemove event
-     * @return {boolean}       Returning false, as the parent returns too
+     *
+     * @param  object  The original mousemove event
+     * @return boolean Returning false, as the parent returns too
      */
     _mouseDrag: function (event) {
       this.dragged = true;
@@ -314,8 +381,9 @@
 
     /**
      * Do the actual calculating/updating of the positions/elements
-     * @param  {object} options Options containing if the function should update the helper lasso
-     * @return {null}         No return value
+     *
+     * @param  object Options containing if the function should update the helper lasso
+     * @return null
      */
     _updateUi: function (options) {
       var scrollObj = this._scrollIfNeeded({
@@ -352,8 +420,9 @@
 
     /**
      * Start the automatic scrolling if needed
-     * @param  {object} options Options containing if the function should start the interval
-     * @return {null}         No return value
+     *
+     * @param  object Options containing if the function should start the interval
+     * @return null
      */
     _updateIntervals: function (options) {
       var that = this;
@@ -370,7 +439,8 @@
 
     /**
      * Clear the autoscroll interval
-     * @return {null} No return value
+     *
+     * @return null
      */
     _clearIntervals: function () {
       // Stop scrolling
@@ -381,12 +451,14 @@
 
     /**
      * The original _mouseStop event extended with the interval clearer
-     * @param  {object} event The original mousestop event
-     * @return {boolean}       The parent's return value
+     *
+     * @param  object  The original mousestop event
+     * @return boolean The parent's return value
      */
     _mouseStop: function (event) {
       this._clearIntervals();
-      var retValue = $.ui.selectable.prototype._mouseStop.call(this, event);
+      var retValue = $.ui.selectable.prototype._mouseStop.call(this,
+        event);
       return retValue;
     }
   });
