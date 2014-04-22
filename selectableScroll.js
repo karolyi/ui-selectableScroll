@@ -94,11 +94,11 @@
      * @return boolean The parent's _mouseStart return value
      */
     _mouseStart: function (event) {
+      var pos = this.scrollElement.offset();
       if (
-        (event.pageX > this.scrollElement.prop('clientWidth') +
-          this.scrollElement.prop('offsetLeft')) ||
-        (event.pageY > this.scrollElement.prop('clientHeight') +
-          this.scrollElement.prop('offsetTop'))) {
+        (event.pageX > this.scrollElement.prop('clientWidth') + pos.left) ||
+        (event.pageY > this.scrollElement.prop('clientHeight') + pos.top)
+      ) {
         return false;
       }
       var retValue = $.ui.selectable.prototype._mouseStart.call(this,
